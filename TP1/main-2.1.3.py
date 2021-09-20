@@ -8,7 +8,10 @@ def main():
     inputText = ""
     if len(sys.argv) >= 2:
         inputText = sys.argv[1]
-    replace = re.sub('[.,;:\"\'()¿?¡!-_]', '', inputText)
-    print(replace)
+    print(replacePunctuationMarks(inputText))
+
+
+def replacePunctuationMarks(text):
+    return re.sub('[.,;:\"\'()¿?¡!-_]', '', text)
 
 main()
