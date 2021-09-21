@@ -14,11 +14,11 @@ import operator
 # • ¿Cu´ales son las 5 palabras m´as usadas?
 
 DATASET = "king_lear-dataset.txt"
-# DATASET = "test.txt"
+#DATASET = "test.txt"
 
 def main():
     # Leer y sanatizar el archivo
-    pathFile = "./documentacion/{}".format(DATASET)
+    pathFile = "./SGDB/TP1/documentacion/{}".format(DATASET)
     text = ""
     with open(pathFile, 'r') as f:
         text = f.read()
