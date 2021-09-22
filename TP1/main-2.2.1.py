@@ -1,6 +1,7 @@
 import sys
 import re
 import operator
+import os 
 
 # 2.2.1.
 # Escribir un programa para procesar el archivo “king lear.txt”:
@@ -18,7 +19,8 @@ DATASET = "king_lear-dataset.txt"
 
 def main():
     # Leer y sanatizar el archivo
-    pathFile = "./SGDB/TP1/documentacion/{}".format(DATASET)
+    RepositoryPath = os.path.dirname(os.path.realpath(__file__))
+    pathFile = "{}/documentacion/{}".format(RepositoryPath,DATASET)
     text = ""
     with open(pathFile, 'r') as f:
         text = f.read()
