@@ -5,6 +5,7 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+from wordcloud import WordCloud
 
 # Realizar las siguientes visualizaciones:
 # Un histograma de las 10 palabras representativas con mayor cantidad de ocurrencias en \king lear.txt" (Ver seccion
@@ -53,13 +54,18 @@ def main():
     print("Las 5 palabras mas usadas son las siguientes:")
     print(sortedWordsByFrecuence[:5])
 
-    df = pd.DataFrame(sortedWordsByFrecuence[:10], columns=['word', 'frecuence'])
-    # sns.set(style="darkgrid")
-    # df = sns.load_dataset(sortedWordsByFrecuence)
-    # print(df)
-    sns.histplot(data=df, x="word")
+    # Se crea un dataFrame con pandas y se le pasa los 10 palabras con mayor frecuencia y se categoriza las columnas
+    # Despues se setea el grafico de barras y se muesta
+    # dfBarChart = pd.DataFrame(sortedWordsByFrecuence[:10], columns=['word', 'frecuence'])
+    # sns.set_theme(style="whitegrid")
+    # ax = sns.barplot(x="word", y="frecuence", data=dfBarChart)
+    # plt.show()
+
+    dfWordCloud = pd.DataFrame(sortedWordsByFrecuence[:50], columns=['word', 'frecuence'])
+    wordcloud = WordCloud().generate(" ".join(dfWordCloud.word))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
     plt.show()
-    
 
 
 def replacePunctuationMarks(text):
