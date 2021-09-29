@@ -67,6 +67,14 @@ def main():
     plt.axis("off")
     plt.show()
 
+# RECORDATORIO IMPORTANTE:
+#  Para ejecutar esto, se puede hacer desde replit:
+#  https://replit.com/@BrianSosa1/SGDB#TP1/main-2.2.3.py
+#  Se abre este archivo y en la consola se va a Shell y se ejecuta:
+#  python3 ./TP1/main-2.2.3.py y listo
+#  si rompe por las lib, correr pip3 install <lib>
+#  Hay que jugar comentando los dos graficos porque no pudimos hacer correr los dos juntos
+
 
 def replacePunctuationMarks(text):
     return re.sub('[.,;:\"\'()¿?¡!-_]', '', text)
@@ -79,6 +87,3 @@ def openFile(path):
 
 
 main()
-
-
-# Para la nube de palabras usar la lib seaborn
