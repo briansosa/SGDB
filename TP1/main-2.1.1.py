@@ -15,11 +15,10 @@ def main():
     if len(sys.argv) >= 2:
         inputText = sys.argv[1]
 
-    match = re.search('[IiVvXxLlCcDdMm]*', inputText)
+    match = re.search('^[IiVvXxLlCcDdMm]*$', inputText)
     if match:
-        if match.group() == inputText:
-            print(True)
-        else:
-            print(False)
+        print(True)
+    else:
+        print(False)
 
 main()

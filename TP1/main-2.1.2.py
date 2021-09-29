@@ -8,11 +8,10 @@ import re
 # . . .
 # apellidoN nombreN
 
-TEXT = "pepe,sand,11111111,laucha,acosta,22222222,toto,belmonte,33333333"
+TEXT = "pepe,sand,11111111/laucha,acosta,22222222/toto,belmonte,33333333"
 
 def main():
     persons = re.findall('([A-Za-z]+),([A-Za-z]+)', TEXT)
-    print(persons)
     for person in persons:
         name = person[0]
         lastName = person[1]

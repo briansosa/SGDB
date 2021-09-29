@@ -2,12 +2,19 @@ import sys
 import re
 import operator
 import os
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
 
-#Escribir un programa basado en el punto anterior que considere filtrar el texto mediante un archivo de “palabras prohibidas”. 
-# Más precisamente: se requiere crear un archivo de texto que contenga una palabra por lı́nea y aquellas palabras de “king lear.txt” que estén contenidas en dicho
-# archivo deben ser descartadas.
-#El objetivo de este proceso de filtrado es descartar aquellas palabras que aportan poca información sobre un texto (ej.: adverbios, artı́culos, proposiciones).
-
+# Realizar las siguientes visualizaciones:
+# Un histograma de las 10 palabras representativas con mayor cantidad de ocurrencias en \king lear.txt" (Ver seccion
+# "Bar Charts", pag. 75 y 97))
+# Una nube de palabras de las 50 palabras mas representativas con mayor cantidad de ocurrencias en \king lear.txt"
+# (Ver captulo 20 del libro, pag. 334-336)
+# El objetivo de estas visualizaciones es intentar determinar algunas caractersticas esenciales (ej.: el tema, los personajes,
+# las acciones) del texto en base a la cantidad de ocurrencias de las palabras.
+# Obs.: la nocion de \palabra representativa" es subjetiva por lo tanto queda a criterio personal. Al menos habra que ltrar
+# los adverbios, los artculos y las proposiciones.
 
 DATASET = "king_lear-dataset.txt"
 # DATASET = "test.txt"
@@ -45,6 +52,15 @@ def main():
     print("El texto contiene {} palabras".format(len(sortedWordsByFrecuence)))
     print("Las 5 palabras mas usadas son las siguientes:")
     print(sortedWordsByFrecuence[:5])
+
+    df = pd.DataFrame(sortedWordsByFrecuence[:10], columns=['word', 'frecuence'])
+    # sns.set(style="darkgrid")
+    # df = sns.load_dataset(sortedWordsByFrecuence)
+    # print(df)
+    sns.histplot(data=df, x="word")
+    plt.show()
+    
+
 
 def replacePunctuationMarks(text):
     return re.sub('[.,;:\"\'()¿?¡!-_]', '', text)
