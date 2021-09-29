@@ -61,6 +61,7 @@ def main():
     # ax = sns.barplot(x="word", y="frecuence", data=dfBarChart)
     # plt.show()
 
+    # Nube de palabras
     dfWordCloud = pd.DataFrame(sortedWordsByFrecuence[:50], columns=['word', 'frecuence'])
     wordcloud = WordCloud().generate(" ".join(dfWordCloud.word))
     plt.imshow(wordcloud, interpolation='bilinear')
