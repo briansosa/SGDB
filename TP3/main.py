@@ -8,16 +8,10 @@ import matplotlib.colors as mplc
 from math import log
 
 # %%
-<<<<<<< HEAD
-=======
-## Add data from country and sites to dataframe
-
->>>>>>> 56e707c43c410b29964330a826c011c4ebb66053
 # Read Geopandas
 world = GeoDataFrame.from_file('./docs/ne_10m_admin_0_countries.shp')
 
 countryDataWorld = DB.SelectRows("""
-<<<<<<< HEAD
 SELECT 
     c.code countrycode, 
     CASE 
@@ -31,9 +25,6 @@ SELECT
         THEN 1
         ELSE site.count_sites
     END count_sites
-=======
-SELECT c.code, c.population, c.gnp, site.count_sites
->>>>>>> 56e707c43c410b29964330a826c011c4ebb66053
 FROM country c
 LEFT JOIN (
     SELECT countrycode, count(*) count_sites 
@@ -43,10 +34,6 @@ LEFT JOIN (
 ON c.code = site.countrycode
 """)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 56e707c43c410b29964330a826c011c4ebb66053
 dfCountryDataWorld = pd.DataFrame(countryDataWorld, columns = ['countrycode', 'population', 'gnp', 'count_sites'])
 world = world.merge(
                      right = dfCountryDataWorld,
@@ -59,7 +46,6 @@ world.head()
 
 # %%
 ## SHOW MAPS
-<<<<<<< HEAD
 world['population2'] =  np.log2(world['population'])
 world['count_sites2'] =  np.log2(world['count_sites'])
 
@@ -74,24 +60,3 @@ world.plot(column='count_sites2', cmap='Blues', alpha=1, linewidth = 0.5, edgeco
 
 plt.show()
 # %%
-=======
-# world['population'].replace(to_replace=0,value = 1)
-# world.head()
-world = world.dropna('population')
-
-world['population2'] =  np.log2(world['population'])
-
-# # Mapa de población mundial
-world.plot(column='population2', colormap='Reds', alpha=1, linewidth = 0.5, edgecolor='black', figsize = (14,8), categorical=False, legend=False, axes=None)
-
-# # Mapa de producto bruto
-# world.plot(column='gnp', colormap='Oranges', alpha=1, linewidth = 0.5, edgecolor='black', figsize = (14,8), categorical=False, legend=False, axes=None)
-
-# # Mapa de sitios por pais
-# world.plot(column='count_sites', colormap='Blues', alpha=1, linewidth = 0.5, edgecolor='black', figsize = (14,8), categorical=False, legend=False, axes=None)
-
-
-plt.show()
-# %%
-
->>>>>>> 56e707c43c410b29964330a826c011c4ebb66053

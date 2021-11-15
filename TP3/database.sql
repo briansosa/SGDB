@@ -225,7 +225,6 @@ WHERE s1.countrycode = s2.countrycode
 AND s1.entidad LIKE 'a%' and s2.entidad LIKE 'b%'
 LIMIT 100 
 
-<<<<<<< HEAD
 -- Se llama dos veces a la tabla sitio, una con alias s1 y la otra con alias s2 
 -- en el select se repiten las columnas), al alias s1 se le agrega una condicion de que las
 -- entidades empiecen con "a" y s2 con "b", luego se hace un producto cartesiano donde cada
@@ -284,6 +283,3 @@ LIMIT 100
 --  Planning Time: 0.594 ms
 --  Execution Time: 81.295 ms
 -- (13 rows)
-=======
--- Trae 
->>>>>>> 56e707c43c410b29964330a826c011c4ebb66053
