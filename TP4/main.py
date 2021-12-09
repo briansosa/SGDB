@@ -31,7 +31,7 @@ def exercise12():
 def exercise13():
     documents = Collection.find({
         'user.followers_count': {
-            "$gte": 10000 
+            "$gte": 100000 
         }
     })
 
@@ -49,7 +49,7 @@ def exercise14():
 
     for document in documents:
         print(f"""
-        ID: {document['id']}
+        ID: {document['user']['id']}
         Name: {document['user']['name']}
         Cantidad de seguidores: {document['user']['followers_count']}
         """)
@@ -155,6 +155,10 @@ def exercise32():
         print(document)
 
 
+def exercise41():
+    return ""
+
+
 def main():
     connectDatabase()
     # exercise11()
@@ -165,6 +169,7 @@ def main():
     # exercise22()
     # exercise23()
     # exercise31()
-    exercise32()
+    # exercise32()
+    exercise41()
 
 main()
