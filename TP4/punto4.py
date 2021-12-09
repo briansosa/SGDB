@@ -22,32 +22,35 @@ db = client['test']
 TweetCollection = db.tweets
 
 # %%
-b = TweetCollection.find({"id": 1116019536988463104})
+b = TweetCollection.find()
 for a in b:
-    print(a["user"]["location"])
+    print(a["user"]["country"])
+    print(a["user"]["country_code"])
 
 # %%
-dfCountryTweets = pd.DataFrame(columns=['country_code', 'country', 'text'])
-
 tweets = TweetCollection.find()
+count = 1
 for tweet in tweets:
-    # print(tweet["id"])
+    print(count)
+    count += 1
+    countryData = ""
+    countryCodeData = ""
     location = tweet["user"]["location"]
     if location or location is not None:
         location = location.replace("'", "")
         queryCountry = f"""SELECT name, code FROM country WHERE lower('{location}') LIKE '%'  || lower(name) || '%'"""
         country = DB.SelectRows(queryCountry)
         if len(country) != 0:
-            tweet["user"]["country"] = country[0][0]
-            tweet["user"]["country_code"] = country[0][1]
+            countryData = country[0][0]
+            countryCodeData = country[0][1]
         else:
             queryCountryCode = f"""
             SELECT name, code FROM country WHERE lower('{location}') LIKE '%'  || lower(code) || '%'
             """
             country = DB.SelectRows(queryCountryCode)
             if len(country) != 0:
-                tweet["user"]["country"] = country[0][0]
-                tweet["user"]["country_code"] = country[0][1]
+                countryData = country[0][0]
+                countryCodeData = country[0][1]
             else:
                 queryCity = f"""
                 SELECT ci.countrycode country_code, co.name country, ci.name 
@@ -57,24 +60,31 @@ for tweet in tweets:
                 """
                 country = DB.SelectRows(queryCity)
                 if len(country) != 0:
-                    tweet["user"]["country_code"] = country[0][0]
-                    tweet["user"]["country"] = country[0][1]
+                    countryCodeData = country[0][0]
+                    countryData = country[0][1]
                 else:
-                    tweet["user"]["country"] = None
-                    tweet["user"]["country_code"] = None
+                    countryData = None
+                    countryCodeData = None
     else:
-        tweet["user"]["country"] = None
-        tweet["user"]["country_code"] = None
-    # try:
-    data = {'country_code': tweet['user']['country_code'], 'country': tweet['user']['country'], 'text': tweet['text']}
-    dfCountryTweets = dfCountryTweets.append(data, ignore_index=True)
-    # except BaseException as err:
-    #     print(tweet['id'])
-    #     print(f"Unexpected {err=}, {type(err)=}")
-    #     raise
+        countryData = None
+        countryCodeData = None
+    query = {'id': tweet['id']}
+    newValue = {'$set': {
+        "user.country": countryData,
+        "user.country_code": countryCodeData
+        }
+    }
+    TweetCollection.update_one(query, newValue)
+
 
 # %%
-dfCountryTweetsCount = dfCountryTweets.groupby(['country_code']).size().reset_index(name='count_tweets')
+countryTweetsCount = TweetCollection.aggregate([
+    { "$group":{"_id":"$user.country_code", "count_tweets": { "$count": {} }} },
+    { "$sort": { "count_tweets": -1 } }
+])
+
+listCountryTweetsCount = list(countryTweetsCount)
+dfCountryTweetsCount = pd.DataFrame(listCountryTweetsCount)
 dfCountryTweetsCount
 
 # %%
@@ -82,10 +92,10 @@ dfCountryTweetsCount
 WorldDatabaseWithCount = WorldDatabase.merge(
                     right = dfCountryTweetsCount,
                     left_on = 'ADM0_A3',
-                    right_on = 'country_code',
+                    right_on = '_id',
                     how = 'left'
                     )
-WorldDatabaseWithCount = WorldDatabaseWithCount.drop('country_code', axis=1)
+WorldDatabaseWithCount = WorldDatabaseWithCount.drop('_id', axis=1)
 
 WorldDatabaseWithCount = WorldDatabaseWithCount[WorldDatabaseWithCount['count_tweets'].notnull()]
 WorldDatabaseWithCount.head()
@@ -95,7 +105,36 @@ WorldDatabaseWithCount.plot(column='count_tweets', cmap='Reds', alpha=1, linewid
 
 
 # %%
-dfCountryTweetsWords = dfCountryTweets[dfCountryTweets["country_code"] in ["USA", "ARG"]]
+import re
+import operator
 
+dictionaryWordsUSA = dict()
+keysInDictionaryUSA = list()
+
+tweetsUSA = TweetCollection.find({'user.country_code': 'USA'})
+for tweetUSA in tweetsUSA:
+    tweetTextUSA = tweetUSA['text'].lower()
+    wordsUSA = re.sub('[.,;:\"\'()¿?¡!-_]', '', tweetTextUSA).split()
+    for word in wordsUSA:
+        if word not in keysInDictionaryUSA:
+            dictionaryWordsUSA[word] = 1
+            keysInDictionaryUSA.append(word)
+        else:
+            dictionaryWordsUSA[word] = dictionaryWordsUSA[word] + 1
+
+sortedWordsByFrecuence = sorted(dictionaryWordsUSA.items(), key=operator.itemgetter(1), reverse=True)
+print("El texto contiene {} palabras".format(len(sortedWordsByFrecuence)))
+print("Las 20 palabras mas usadas son las siguientes:")
+print(sortedWordsByFrecuence[:20])
+
+# %%
+from wordcloud import WordCloud
+
+# Nube de palabras
+dfWordCloud = pd.DataFrame(sortedWordsByFrecuence[:20], columns=['word', 'frecuence'])
+wordcloud = WordCloud().generate(" ".join(dfWordCloud.word))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
 
 # %%
