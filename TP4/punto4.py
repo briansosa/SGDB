@@ -23,11 +23,6 @@ db = client['test']
 # TweetCollection = db.test
 TweetCollection = db.tweets
 
-# %%
-b = TweetCollection.find()
-for a in b:
-    print(a["user"]["country"])
-    print(a["user"]["country_code"])
 
 # %%
 tweets = TweetCollection.find()
@@ -152,16 +147,24 @@ import re
 import operator
 
 tweetsUSA = TweetCollection.find({'user.country_code': 'USA'})
-dictionaryWordsUSA = countWordByFrecuence(tweetsUSA)
+tweetsARG = TweetCollection.find({'user.country_code': 'ARG'})
 
+for tweets in [tweetsARG, tweetsUSA]:
+    dictionaryWords = countWordByFrecuence(tweets)
+    sortedWordsByFrecuence = sorted(dictionaryWords.items(), key=operator.itemgetter(1), reverse=True)
+    
+    print("El texto contiene {} palabras".format(len(sortedWordsByFrecuence)))
+    print("Las 20 palabras mas usadas son las siguientes:")
+    print(sortedWordsByFrecuence[:20])
 
-sortedWordsByFrecuence = sorted(dictionaryWordsUSA.items(), key=operator.itemgetter(1), reverse=True)
-print("El texto contiene {} palabras".format(len(sortedWordsByFrecuence)))
-print("Las 20 palabras mas usadas son las siguientes:")
-print(sortedWordsByFrecuence[:20])
+    plotWordCloud(sortedWordsByFrecuence)
 
+# %%
+import os
 
-
-
+DATASET_PROHIBIDAS = "palabras-prohibidas.txt"
+REPOSITORY_PATH = os.path.dirname(os.path.realpath(__file__))
+pathFileProhibidas = "{}/documentacion/{}".format(REPOSITORY_PATH, DATASET_PROHIBIDAS)
+textProhibidas = openFile(pathFileProhibidas).lower().split()
 
 # %%
