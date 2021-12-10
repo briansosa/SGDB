@@ -12,8 +12,10 @@ import matplotlib.colors as mplc
 
 # %%
 WorldDatabase = GeoDataFrame.from_file('./docs/ne_10m_admin_0_countries.shp')
-WorldDatabase
+WorldDatabase.head()
 
+# a = WorldDatabase[WorldDatabase['ADM0_A3'] == 'GBR']
+# a
 # %%
 # Connect to MongoDB instance running on localhost
 client = pymongo.MongoClient()
@@ -30,38 +32,50 @@ for a in b:
 # %%
 tweets = TweetCollection.find()
 count = 1
-for tweet in tweets:
+for tweet in tweets[86380:]:
     print(count)
     count += 1
     countryData = ""
     countryCodeData = ""
     location = tweet["user"]["location"]
     if location or location is not None:
-        location = location.replace("'", "")
-        queryCountry = f"""SELECT name, code FROM country WHERE lower('{location}') LIKE '%'  || lower(name) || '%'"""
+        location = re.sub('[^a-zA-Z0-9]+', ' ', location)
+        queryCountry = f"""
+        SELECT name, code 
+        FROM country 
+        WHERE COALESCE(TRIM(name), '') <> ''
+            AND COALESCE(TRIM(code), '') <> ''
+            AND (lower(name) LIKE '%'  || lower('{location}') || '%' 
+            OR lower('{location}') LIKE '%'  || lower(name) || '%'
+            OR lower(code) LIKE '%' || lower('{location}') || '%')
+        """
         country = DB.SelectRows(queryCountry)
         if len(country) != 0:
             countryData = country[0][0]
             countryCodeData = country[0][1]
         else:
-            queryCountryCode = f"""
-            SELECT name, code FROM country WHERE lower('{location}') LIKE '%'  || lower(code) || '%'
+            queryCity = f"""
+            SELECT ci.countrycode country_code, co.name country 
+            FROM city ci
+            INNER JOIN country co ON ci.countrycode = co.code
+            WHERE COALESCE(TRIM(ci.name), '') <> ''
+                AND COALESCE(TRIM(ci.district), '') <> ''
+                AND (LOWER(ci.name) LIKE '%' || LOWER('{location}') || '%'
+                OR LOWER('{location}') LIKE '%'  || LOWER(ci.name) || '%'
+                OR LOWER(ci.district) LIKE '%' || LOWER('{location}') || '%'
+                OR LOWER('{location}') LIKE '%'  || LOWER(ci.district) || '%')
             """
-            country = DB.SelectRows(queryCountryCode)
+            country = DB.SelectRows(queryCity)
             if len(country) != 0:
-                countryData = country[0][0]
-                countryCodeData = country[0][1]
+                countryCodeData = country[0][0]
+                countryData = country[0][1]
             else:
-                queryCity = f"""
-                SELECT ci.countrycode country_code, co.name country, ci.name 
-                FROM city ci
-                INNER JOIN country co ON ci.countrycode = co.code
-                WHERE lower('{location}') LIKE '%'  || lower(ci.name) || '%'
-                """
-                country = DB.SelectRows(queryCity)
-                if len(country) != 0:
-                    countryCodeData = country[0][0]
-                    countryData = country[0][1]
+                dfLocationCountry = WorldDatabase[
+                    WorldDatabase['ADMIN'].str.contains(location)
+                    | WorldDatabase['ADMIN'].apply(lambda row: location.find(row) != -1)]
+                if dfLocationCountry.empty == False:
+                    countryCodeData = WorldDatabase.iloc[0]['ADM0_A3']
+                    countryData = WorldDatabase.iloc[0]['ADMIN']
                 else:
                     countryData = None
                     countryCodeData = None
@@ -75,7 +89,6 @@ for tweet in tweets:
         }
     }
     TweetCollection.update_one(query, newValue)
-
 
 # %%
 countryTweetsCount = TweetCollection.aggregate([
@@ -101,40 +114,54 @@ WorldDatabaseWithCount = WorldDatabaseWithCount[WorldDatabaseWithCount['count_tw
 WorldDatabaseWithCount.head()
 
 # %%
-WorldDatabaseWithCount.plot(column='count_tweets', cmap='Reds', alpha=1, linewidth = 0.5, edgecolor='black', figsize = (14,8), categorical=False, legend=False, ax=None)
+WorldDatabaseWithCount['count_tweets2'] =  np.log2(WorldDatabaseWithCount['count_tweets'])
+WorldDatabaseWithCount.plot(column='count_tweets2', cmap='Reds', alpha=1, linewidth = 0.5, edgecolor='black', figsize = (14,8), categorical=False, legend=False, ax=None)
+
+# %%
+def countWordByFrecuence(tweets):
+    dictionaryWords = dict()
+    keysInDictionary = list()
+    count = 1
+    for tweet in tweets:
+        print(count)
+        count += 1
+        tweetText = tweet['text'].lower()
+        words = re.sub('[.,;:\"\'()¿?¡!-_]', '', tweetText).split()
+        for word in words:
+            if word not in keysInDictionary:
+                dictionaryWords[word] = 1
+                keysInDictionary.append(word)
+            else:
+                dictionaryWords[word] = dictionaryWords[word] + 1
+    return dictionaryWords
+
+# %%
+from wordcloud import WordCloud
+
+# Nube de palabras
+def plotWordCloud(wordsByFrecuence):
+    dfWordCloud = pd.DataFrame(wordsByFrecuence[:20], columns=['word', 'frecuence'])
+    wordcloud = WordCloud().generate(" ".join(dfWordCloud.word))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.show()
 
 
 # %%
 import re
 import operator
 
-dictionaryWordsUSA = dict()
-keysInDictionaryUSA = list()
-
 tweetsUSA = TweetCollection.find({'user.country_code': 'USA'})
-for tweetUSA in tweetsUSA:
-    tweetTextUSA = tweetUSA['text'].lower()
-    wordsUSA = re.sub('[.,;:\"\'()¿?¡!-_]', '', tweetTextUSA).split()
-    for word in wordsUSA:
-        if word not in keysInDictionaryUSA:
-            dictionaryWordsUSA[word] = 1
-            keysInDictionaryUSA.append(word)
-        else:
-            dictionaryWordsUSA[word] = dictionaryWordsUSA[word] + 1
+dictionaryWordsUSA = countWordByFrecuence(tweetsUSA)
+
 
 sortedWordsByFrecuence = sorted(dictionaryWordsUSA.items(), key=operator.itemgetter(1), reverse=True)
 print("El texto contiene {} palabras".format(len(sortedWordsByFrecuence)))
 print("Las 20 palabras mas usadas son las siguientes:")
 print(sortedWordsByFrecuence[:20])
 
-# %%
-from wordcloud import WordCloud
 
-# Nube de palabras
-dfWordCloud = pd.DataFrame(sortedWordsByFrecuence[:20], columns=['word', 'frecuence'])
-wordcloud = WordCloud().generate(" ".join(dfWordCloud.word))
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis("off")
-plt.show()
+
+
 
 # %%
