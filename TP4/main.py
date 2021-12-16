@@ -155,10 +155,6 @@ def exercise32():
         print(document)
 
 
-def exercise41():
-    return ""
-
-
 def main():
     connectDatabase()
     # exercise11()
@@ -170,6 +166,5 @@ def main():
     # exercise23()
     # exercise31()
     # exercise32()
-    exercise41()
 
 main()
